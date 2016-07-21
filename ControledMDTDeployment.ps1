@@ -139,6 +139,6 @@ If ( $VM -ne $Null ) {
 # Run SSH commands
 $SshHost = "192.168.0.100"
 Import-Module SSH-Sessions
-New-SshSession -ComputerName $SshHost -Username admin -Password Disc0.L0ve
+New-SshSession -ComputerName $SshHost -Username admin -Password Passw0rd
 Invoke-SshCommand -Command 'ls' -InvokeOnAll
 Remove-SshSession -ComputerName $SshHost
