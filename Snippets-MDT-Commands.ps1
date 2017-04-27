@@ -17,3 +17,6 @@ import-mdtoperatingsystem -path "DS001:\Operating Systems\Reference Images" -Sou
 # Remove all operating systems of x86 architecture
 # (still need to fix exact syntax)
 Get-ChildItem -Recurse -Include *.wim | Where-Object { $_.Platform -eq "x86" } | ForEach { Remove-Item $_.PSPath -Force -Verbose }
+
+# Import packages
+import-mdtpackage -path "DS002:\Packages" -SourcePath "C:\Users\administrator.home\Downloads" -Verbose
