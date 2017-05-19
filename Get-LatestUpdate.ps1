@@ -1,31 +1,32 @@
 <#
 .SYNOPSIS
-Get the latest Cumilitave update for Windows
+Get the latest Cumulative update for Windows
 
 .DESCRIPTION
 This script will return a list of updates based on a search string
 
 .NOTES
 Copyright Keith Garner, All rights reserved.
+Forked from: https://gist.github.com/keithga/1ad0abd1f7ba6e2f8aff63d94ab03048
 
-.LINKS
+.LINK
 https://support.microsoft.com/en-us/help/4000823
 
 .EXAMPLE
 
-Get the latest Windows 10 Cumulitave Update x64 (this is the default)
+Get the latest Windows 10 Cumulative Update x64 (this is the default)
 
 .\get-latestUpdate.ps1 
 
 .EXAMPLE
 
-Get the latest Windows 10 Cumulitave Update x86
+Get the latest Windows 10 Cumulative Update x86
 
 .\get-latestUpdate.ps1 -SearchString 'Cumulative.*x86'
 
 .EXAMPLE
 
-Get the latest Windows Server 2016 Cumulitave Update x64 
+Get the latest Windows Server 2016 Cumulative Update x64 
 
 .\get-latestUpdate.ps1 -SearchString 'Cumulative.*Server.*x64' -OSBuild 14393
 
