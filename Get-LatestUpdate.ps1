@@ -53,19 +53,22 @@
 [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Low', DefaultParameterSetName='Base')]
 Param(
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="JSON source for the update KB articles.")]
+    [Parameter(ParameterSetName='Download', Mandatory=$False)]
     [string]$StartKB = 'https://support.microsoft.com/api/content/asset/4000816',
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Windows build number.")]
+    [Parameter(ParameterSetName='Download', Mandatory=$False)]
     [ValidateSet('15063','14393','10586','10240')]
     [string]$Build = '15063',
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Search query string.")]
+    [Parameter(ParameterSetName='Download', Mandatory=$False)]
     [string]$SearchString = 'Cumulative.*x64',
 
-    [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Download the discovered updates.")]
+    [Parameter(ParameterSetName='Download', Mandatory=$False, HelpMessage="Download the discovered updates.")]
     [switch]$Download,
 
-    [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Specify a target path to download the update(s) to.")]
+    [Parameter(ParameterSetName='Download', Mandatory=$False, HelpMessage="Specify a target path to download the update(s) to.")]
     [ValidateScript({ If (Test-Path $_ -PathType 'Container') { $True } Else { Throw "Cannot find path $_" } })]
     [string]$Path = ".\"
 )
@@ -151,11 +154,14 @@ If ( $Download ) {
     ForEach ( $Url in $Urls ) {
         $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
         $target = "$((Get-Item $Path).FullName)\$filename"
+        Write-Verbose "`t`tDownload target will be $target"
 
         If (!(Test-Path -Path $target)) {
             If ($pscmdlet.ShouldProcess($Url, "Download")) {
                 Invoke-WebRequest -Uri $Url -OutFile $target
             }
+        } Else {
+            Write-Verbose "File exists: $target. Skipping download."
         }
     }
 }
