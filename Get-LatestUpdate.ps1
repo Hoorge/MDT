@@ -49,7 +49,7 @@ Param(
 )
 
 #region Support Routine
-Function Find-LatestUpdate {
+Function Select-LatestUpdate {
     [CmdletBinding(SupportsShouldProcess=$True)]
     Param(
         [parameter(Mandatory=$True, ValueFromPipeline=$True)]
@@ -77,13 +77,12 @@ Function Find-LatestUpdate {
 
 #region Find the KB Article Number
 Write-Verbose "Downloading $StartKB to retrieve the list of updates."
-$kbID = Invoke-WebRequest -Uri $StartKB |
-    Select-Object -ExpandProperty Content |
+$kbID = (Invoke-WebRequest -Uri $StartKB).Content |
     ConvertFrom-Json |
     Select-Object -ExpandProperty Links |
     Where-Object level -eq 2 |
     Where-Object text -match $Build |
-    Find-LatestUpdate |
+    Select-LatestUpdate |
     Select-Object -First 1
 #endregion
 
