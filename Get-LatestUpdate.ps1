@@ -1,36 +1,55 @@
 <#
-.SYNOPSIS
-    Get the latest Cumulative update for Windows
+    .SYNOPSIS
+        Get the latest Cumulative update for Windows
 
-.DESCRIPTION
-    This script will return the list of Cumulative updates for Windows 10 and Windows Server 2016 from the Microsoft Update Catalog.
+    .DESCRIPTION
+        This script will return the list of Cumulative updates for Windows 10 and Windows Server 2016 from the Microsoft Update Catalog.
 
-.NOTES
-    Name: Install-VisualCRedistributables.ps1
-    Author: Aaron Parker
-    Twitter: @stealthpuppy
+    .NOTES
+        Name: Get-LatestUpdates.ps1
+        Author: Aaron Parker
+        Twitter: @stealthpuppy
 
-    Original script:
-    Copyright Keith Garner, All rights reserved.
-    Forked from: https://gist.github.com/keithga/1ad0abd1f7ba6e2f8aff63d94ab03048
+        Original script:
+        Copyright Keith Garner, All rights reserved.
+        Forked from: https://gist.github.com/keithga/1ad0abd1f7ba6e2f8aff63d94ab03048
 
-.LINK
-    https://support.microsoft.com/en-us/help/4000823
+    .LINK
+        https://support.microsoft.com/en-us/help/4000823
 
-.EXAMPLE
-    Get the latest Cumulative Update for Windows 10 x64
+    .EXAMPLE
+        Get the latest Cumulative Update for Windows 10 x64
 
-    .\Get-LatestUpdate.ps1 
+        .\Get-LatestUpdate.ps1 
 
-.EXAMPLE
-    Get the latest Cumulative Update for Windows 10 x86
+    .PARAMETER SearchString
+        Specify a specific search string to change the target update behaviour. The default will only download Cumulative updates for x64.
 
-    .\Get-LatestUpdate.ps1 -SearchString 'Cumulative.*x86'
+    .EXAMPLE
+        Get the latest Cumulative Update for Windows 10 x86
 
-.EXAMPLE
-    Get the latest Cumulative Update for Windows Server 2016
+        .\Get-LatestUpdate.ps1 -SearchString 'Cumulative.*x86'
 
-    .\Get-LatestUpdate.ps1 -SearchString 'Cumulative.*Server.*x64' -Build 14393
+    .EXAMPLE
+        Get the latest Cumulative Update for Windows Server 2016
+
+        .\Get-LatestUpdate.ps1 -SearchString 'Cumulative.*Server.*x64' -Build 14393
+
+    .PARAMETER Download
+        Download the enumerated updates.
+
+    .EXAMPLE
+        Enumerate the latest Windows 10 Cumulative Update for build 14393 and download it.
+
+        .\Get-LatestUpdate.ps1 -Download -Build 14393
+
+    .PARAMETER Path
+        Specify the path to download the updates, otherwise use the local folder.
+
+    .EXAMPLE
+        Enumerate the latest Windows 10 Cumulative Update and download to C:\Updates.
+
+        .\Get-LatestUpdate.ps1 -Download -Path C:\Updates
 #>
 [CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Low', DefaultParameterSetName='Base')]
 Param(
@@ -45,7 +64,11 @@ Param(
     [string]$SearchString = 'Cumulative.*x64',
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Download the discovered updates.")]
-    [switch]$Download
+    [switch]$Download,
+
+    [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Specify a target path to download the update(s) to.")]
+    [ValidateScript({ If (Test-Path $_ -PathType 'Container') { $True } Else { Throw "Cannot find path $_" } })]
+    [string]$Path = ".\",
 )
 
 #region Support Routine
@@ -126,8 +149,8 @@ ForEach ( $kbID in $kbIDs )
 If ( $Download ) {
     ForEach ( $Url in $Urls ) {
         If ($pscmdlet.ShouldProcess($Url, "Download")) {
-            $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
-            Invoke-WebRequest -Uri $Url -OutFile .\$filename
+            $target = "$Path\$Url.Substring($Url.LastIndexOf("/") + 1)"
+            Invoke-WebRequest -Uri $Url -OutFile $target
         }
     }
 }
