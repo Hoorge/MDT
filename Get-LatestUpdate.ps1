@@ -149,7 +149,8 @@ ForEach ( $kbID in $kbIDs )
 If ( $Download ) {
     ForEach ( $Url in $Urls ) {
         If ($pscmdlet.ShouldProcess($Url, "Download")) {
-            $target = "$Path\$Url.Substring($Url.LastIndexOf("/") + 1)"
+            $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
+            $target = "$((Get-Item $Path).FullName)\$filename"
             Invoke-WebRequest -Uri $Url -OutFile $target
         }
     }
