@@ -132,5 +132,5 @@ If ( $Download ) {
     }
 }
 
-# Write the URLs list to the 
-# Write-Output $Urls
+# Write the URLs list to the pipeline
+Write-Output $Urls
