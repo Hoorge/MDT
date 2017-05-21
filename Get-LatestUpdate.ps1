@@ -3,7 +3,7 @@
         Get the latest Cumulative update for Windows
 
     .DESCRIPTION
-        This script will return the list of Cumulative updates for Windows 10 and Windows Server 2016 from the Microsoft Update Catalog.
+        This script will return the list of Cumulative updates for Windows 10 and Windows Server 2016 from the Microsoft Update Catalog. Optionally download the updates using the -Download parameter.
 
     .NOTES
         Name: Get-LatestUpdates.ps1
