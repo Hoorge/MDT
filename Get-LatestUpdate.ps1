@@ -88,19 +88,27 @@ $kbID = (Invoke-WebRequest -Uri $StartKB).Content |
 
 #region get the download link from Windows Update
 Write-Verbose "Found kbID: http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)"
-$kbObj = Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)" 
+$kbObj = Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)"
 
 $Available_kbIDs = $kbObj.InputFields | 
     Where-Object { $_.Type -eq 'Button' -and $_.Value -eq 'Download' } | 
-    Select-Object -ExpandProperty  ID
+    Select-Object -ExpandProperty ID
 
 $Available_kbIDs | Out-String | Write-Verbose
 
 $kbIDs = $kbObj.Links | 
     Where-Object ID -match '_link' |
-    Where-Object InnerText -match $SearchString |
+    Where-Object innerText -match $SearchString |
     ForEach-Object { $_.Id.Replace('_link','') } |
-    Where-Object { $_ -In $Available_kbIDs }
+    Where-Object { $_ -in $Available_kbIDs }
+
+If ( $kbIDs -eq $Null ) {
+    $kbIDs = $kbObj.Links | 
+        Where-Object ID -match '_link' |
+        Where-Object outerHTML -match $SearchString |
+        ForEach-Object { $_.Id.Replace('_link','') } |
+        Where-Object { $_ -in $Available_kbIDs }
+}
 
 ForEach ( $kbID in $kbIDs )
 {
@@ -113,8 +121,3 @@ ForEach ( $kbID in $kbIDs )
         ForEach-Object { $_.matches.value }
 }
 #endregion
-
-
-If ($pscmdlet.ShouldProcess($kbID, "Downloading")) {
-
-}
