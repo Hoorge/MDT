@@ -77,7 +77,7 @@ Function Find-LatestUpdate {
 
 #region Find the KB Article Number
 Write-Verbose "Downloading $StartKB to retrieve the list of updates."
-$kbID = Invoke-WebRequest $StartKB |
+$kbID = Invoke-WebRequest -Uri $StartKB |
     Select-Object -ExpandProperty Content |
     ConvertFrom-Json |
     Select-Object -ExpandProperty Links |
@@ -89,7 +89,7 @@ $kbID = Invoke-WebRequest $StartKB |
 
 #region get the download link from Windows Update
 Write-Verbose "Found kbID: http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)"
-$kbObj = Invoke-WebRequest "http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)" 
+$kbObj = Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)" 
 
 $Available_kbIDs = $kbObj.InputFields | 
     Where-Object { $_.Type -eq 'Button' -and $_.Value -eq 'Download' } | 
@@ -108,7 +108,7 @@ ForEach ( $kbID in $kbIDs )
     Write-Verbose "`t`tDownload $kbID"
     $Post = @{ size = 0; updateID = $kbID; uidInfo = $kbID } | ConvertTo-Json -Compress
     $PostBody = @{ updateIDs = "[$Post]" } 
-    Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx'  -Method Post -Body $postBody |
+    Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody |
         Select-Object -ExpandProperty Content |
         Select-String -AllMatches -Pattern "(http[s]?\://download\.windowsupdate\.com\/[^\'\""]*)" | 
         ForEach-Object { $_.matches.value }
