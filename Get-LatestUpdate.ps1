@@ -68,7 +68,7 @@ Param(
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Specify a target path to download the update(s) to.")]
     [ValidateScript({ If (Test-Path $_ -PathType 'Container') { $True } Else { Throw "Cannot find path $_" } })]
-    [string]$Path = ".\",
+    [string]$Path = ".\"
 )
 
 #region Support Routine
