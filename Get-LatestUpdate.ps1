@@ -9,7 +9,7 @@
     Name: Install-VisualCRedistributables.ps1
     Author: Aaron Parker
     Twitter: @stealthpuppy
-    
+
     Original script:
     Copyright Keith Garner, All rights reserved.
     Forked from: https://gist.github.com/keithga/1ad0abd1f7ba6e2f8aff63d94ab03048
@@ -32,10 +32,10 @@
 
     .\Get-LatestUpdate.ps1 -SearchString 'Cumulative.*Server.*x64' -Build 14393
 #>
-[CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = "Low", DefaultParameterSetName='Base')]
+[CmdletBinding(SupportsShouldProcess = $True, ConfirmImpact = 'Low', DefaultParameterSetName='Base')]
 Param(
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="JSON source for the update KB articles.")]
-    [string]$startKB = 'https://support.microsoft.com/api/content/asset/4000816',
+    [string]$StartKB = 'https://support.microsoft.com/api/content/asset/4000816',
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Windows build number.")]
     [ValidateSet('15063','14393','10586','10240')]
@@ -76,8 +76,8 @@ Function Find-LatestUpdate {
 #endregion
 
 #region Find the KB Article Number
-Write-Verbose "Downloading $startKB to retrieve the list of updates."
-$kbID = Invoke-WebRequest $startKB |
+Write-Verbose "Downloading $StartKB to retrieve the list of updates."
+$kbID = Invoke-WebRequest $StartKB |
     Select-Object -ExpandProperty Content |
     ConvertFrom-Json |
     Select-Object -ExpandProperty Links |
