@@ -162,15 +162,21 @@ If ( $Download ) {
 
 # Build the output object
 # Select the Update names
-$Desc = $kbObj.ParsedHtml.body.getElementsByTagName('a') | ForEach-Object InnerText | Where-Object { $_ -match $SearchString }
+$Notes = $kbObj.ParsedHtml.body.getElementsByTagName('a') | ForEach-Object InnerText | Where-Object { $_ -match $SearchString }
 
+[int]$i = 0
 $Output = @()
 ForEach ( $Url in $Urls ) {
     $item = New-Object PSObject
-    $item | Add-Member -type NoteProperty -Name 'KB' -Value $Kb
-    $item | Add-Member -type NoteProperty -Name 'Description' -Value $Desc[$Url.Item]
+    $item | Add-Member -type NoteProperty -Name 'KB' -Value "KB$Kb"
+    If ( $Notes.Count -eq 1 ) {
+        $item | Add-Member -type NoteProperty -Name 'Note' -Value $Notes
+    } Else {
+        $item | Add-Member -type NoteProperty -Name 'Note' -Value $Notes[$i]
+    }
     $item | Add-Member -type NoteProperty -Name 'URL' -Value $Url
     $Output += $item
+    $i = $i + 1
 }
 
 # Write the URLs list to the pipeline
