@@ -45,7 +45,7 @@ Param(
     [string]$SearchString = 'Cumulative.*x64',
 
     [Parameter(ParameterSetName='Base', Mandatory=$False, HelpMessage="Download the discovered updates.")]
-    [switch]$Download = $False
+    [switch]$Download
 )
 
 #region Support Routine
@@ -115,9 +115,22 @@ ForEach ( $kbID in $kbIDs )
     Write-Verbose "`t`tDownload $kbID"
     $Post = @{ size = 0; updateID = $kbID; uidInfo = $kbID } | ConvertTo-Json -Compress
     $PostBody = @{ updateIDs = "[$Post]" } 
-    Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody |
+    $Urls = Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody |
         Select-Object -ExpandProperty Content |
         Select-String -AllMatches -Pattern "(http[s]?\://download\.windowsupdate\.com\/[^\'\""]*)" | 
         ForEach-Object { $_.matches.value }
 }
 #endregion
+
+# Download the updates if -Download is specified
+If ( $Download ) {
+    ForEach ( $Url in $Urls ) {
+        If ($pscmdlet.ShouldProcess($Url, "Download")) {
+            $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
+            Invoke-WebRequest -Uri $Url -OutFile .\$filename
+        }
+    }
+}
+
+# Write the URLs list to the 
+# Write-Output $Urls
