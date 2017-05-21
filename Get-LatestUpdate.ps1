@@ -10,8 +10,7 @@
         Author: Aaron Parker
         Twitter: @stealthpuppy
 
-        Original script:
-        Copyright Keith Garner, All rights reserved.
+        Original script: Copyright Keith Garner, All rights reserved.
         Forked from: https://gist.github.com/keithga/1ad0abd1f7ba6e2f8aff63d94ab03048
 
     .LINK
@@ -110,7 +109,8 @@ $kbID = (Invoke-WebRequest -Uri $StartKB).Content |
 #endregion
 
 #region get the download link from Windows Update
-Write-Verbose "Found kbID: http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)"
+$Kb = $kbID.articleID
+Write-Verbose "Found ID: KB$($kbID.articleID)"
 $kbObj = Invoke-WebRequest -Uri "http://www.catalog.update.microsoft.com/Search.aspx?q=KB$($kbID.articleID)"
 
 $Available_kbIDs = $kbObj.InputFields | 
@@ -125,6 +125,7 @@ $kbIDs = $kbObj.Links |
     ForEach-Object { $_.Id.Replace('_link','') } |
     Where-Object { $_ -in $Available_kbIDs }
 
+# If innerHTML is empty or does not exist, use outerHTML instead
 If ( $kbIDs -eq $Null ) {
     $kbIDs = $kbObj.Links | 
         Where-Object ID -match '_link' |
@@ -133,28 +134,44 @@ If ( $kbIDs -eq $Null ) {
         Where-Object { $_ -in $Available_kbIDs }
 }
 
-ForEach ( $kbID in $kbIDs )
-{
+$Urls = @()
+ForEach ( $kbID in $kbIDs ) {
     Write-Verbose "`t`tDownload $kbID"
     $Post = @{ size = 0; updateID = $kbID; uidInfo = $kbID } | ConvertTo-Json -Compress
     $PostBody = @{ updateIDs = "[$Post]" } 
-    $Urls = Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody |
+    $Urls += Invoke-WebRequest -Uri 'http://www.catalog.update.microsoft.com/DownloadDialog.aspx' -Method Post -Body $postBody |
         Select-Object -ExpandProperty Content |
         Select-String -AllMatches -Pattern "(http[s]?\://download\.windowsupdate\.com\/[^\'\""]*)" | 
         ForEach-Object { $_.matches.value }
 }
 #endregion
 
-# Download the updates if -Download is specified
+# Download the updates if -Download is specified, skip if the file exists
 If ( $Download ) {
     ForEach ( $Url in $Urls ) {
-        If ($pscmdlet.ShouldProcess($Url, "Download")) {
-            $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
-            $target = "$((Get-Item $Path).FullName)\$filename"
-            Invoke-WebRequest -Uri $Url -OutFile $target
+        $filename = $Url.Substring($Url.LastIndexOf("/") + 1)
+        $target = "$((Get-Item $Path).FullName)\$filename"
+
+        If (!(Test-Path -Path $target)) {
+            If ($pscmdlet.ShouldProcess($Url, "Download")) {
+                Invoke-WebRequest -Uri $Url -OutFile $target
+            }
         }
     }
 }
 
+# Build the output object
+# Select the Update names
+$Desc = $kbObj.ParsedHtml.body.getElementsByTagName('a') | ForEach-Object InnerText | Where-Object { $_ -match $SearchString }
+
+$Output = @()
+ForEach ( $Url in $Urls ) {
+    $item = New-Object PSObject
+    $item | Add-Member -type NoteProperty -Name 'KB' -Value $Kb
+    $item | Add-Member -type NoteProperty -Name 'Description' -Value $Desc[$Url.Item]
+    $item | Add-Member -type NoteProperty -Name 'URL' -Value $Url
+    $Output += $item
+}
+
 # Write the URLs list to the pipeline
-Write-Output $Urls
+Write-Output $Output
